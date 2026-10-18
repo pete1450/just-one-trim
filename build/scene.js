@@ -68,6 +68,74 @@ halo.position.copy(sunDir).multiplyScalar(518);
 halo.lookAt(0, 0, 0);
 scene.add(halo);
 
+/* ---------------- faint early stars + drifting fireflies ---------------- */
+function softDot() {
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const g = c.getContext('2d');
+  const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0, 'rgba(255,255,255,1)');
+  grad.addColorStop(0.4, 'rgba(255,255,255,0.45)');
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = grad; g.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+}
+const dotTex = softDot();
+
+// early stars: upper sky only, faint
+const starGeo = new THREE.BufferGeometry();
+{
+  const pos = [];
+  for (let i = 0; i < 200; i++) {
+    const t = rnd() * Math.PI * 2;
+    const y = 0.3 + rnd() * 0.7;
+    const r = Math.sqrt(Math.max(0, 1 - y * y));
+    pos.push(Math.cos(t) * r * 520, y * 520, Math.sin(t) * r * 520);
+  }
+  starGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+}
+const starMat = new THREE.PointsMaterial({
+  size: 2.4, sizeAttenuation: false, map: dotTex, transparent: true,
+  opacity: 0.5, color: 0xfff2dc, fog: false, depthWrite: false
+});
+scene.add(new THREE.Points(starGeo, starMat));
+
+// fireflies: slow drift around the tree, each pulsing its own warm glow
+const FLIES = 22;
+const flyGeo = new THREE.BufferGeometry();
+const flyPos = new Float32Array(FLIES * 3);
+const flyCol = new Float32Array(FLIES * 3);
+const flySeed = [];
+for (let i = 0; i < FLIES; i++) {
+  flySeed.push({
+    r: 16 + rnd() * 26, h: 6 + rnd() * 38, a: rnd() * Math.PI * 2,
+    sp: 0.05 + rnd() * 0.12, ph: rnd() * Math.PI * 2, pu: 0.6 + rnd() * 1.4
+  });
+}
+flyGeo.setAttribute('position', new THREE.BufferAttribute(flyPos, 3));
+flyGeo.setAttribute('color', new THREE.BufferAttribute(flyCol, 3));
+const flies = new THREE.Points(flyGeo, new THREE.PointsMaterial({
+  size: 1.7, map: dotTex, transparent: true, vertexColors: true,
+  blending: THREE.AdditiveBlending, depthWrite: false
+}));
+flies.frustumCulled = false;
+scene.add(flies);
+let flyT = 0;
+function updateFlies(dt) {
+  flyT += dt;
+  for (let i = 0; i < FLIES; i++) {
+    const s = flySeed[i];
+    const a = s.a + flyT * s.sp;
+    flyPos[i * 3] = Math.cos(a) * s.r + Math.sin(flyT * 0.3 + s.ph) * 2;
+    flyPos[i * 3 + 1] = s.h + Math.sin(flyT * 0.5 + s.ph) * 3;
+    flyPos[i * 3 + 2] = Math.sin(a) * s.r + Math.cos(flyT * 0.23 + s.ph) * 2;
+    const b = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(flyT * s.pu * 2 + s.ph));
+    flyCol[i * 3] = b; flyCol[i * 3 + 1] = b * 0.82; flyCol[i * 3 + 2] = b * 0.5;
+  }
+  flyGeo.attributes.position.needsUpdate = true;
+  flyGeo.attributes.color.needsUpdate = true;
+  starMat.opacity = 0.42 + 0.12 * Math.sin(flyT * 0.6); // barely-there twinkle
+}
+
 /* ---------------- lights ---------------- */
 scene.add(new THREE.HemisphereLight(0xd99a70, 0x3d2c44, 0.3));
 const dl = new THREE.DirectionalLight(0xffb268, 1.45);
@@ -712,6 +780,7 @@ function animate() {
   if (treeDirty) rebuildTree();
   updateDebris(dt);
   updateRing(dt);
+  updateFlies(dt);
 
   // hold-to-trim: charge the dial; a full second executes the trim
   if (holdPid !== -1 && holdNode >= 0) {
