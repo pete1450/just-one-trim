@@ -53,7 +53,7 @@ class Sim {
     this.targets = { s1: 1, s2: this._ri(8, 11), s3: this._ri(30, 46), cl: this._ri(130, 180) };
     this.liveChain = [];      // live tier1-3 non-girth node ids (shoot candidates)
     this.chainPos = new Map();// nodeId -> index in liveChain (swap-remove)
-    this.rate = 3;            // voxels per minute (UI slider)
+    this.rate = 0.2;          // voxels per minute (UI slider; default = slowest)
     this.acc = 0;             // fractional growth accumulator
     this.wildAcc = 0;         // minutes accumulated while dormant
     this.voxels = 0;          // live voxel count

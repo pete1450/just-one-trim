@@ -348,7 +348,7 @@ function boot() {
   if (d) {
     sim = new BonsaiSim.Sim(1);
     sim.load(d);
-    sim.rate = d.rate || 3;
+    sim.rate = d.rate || 0.2;
     rateSlider.value = String(rateToSlider(sim.rate));
     updateRateWord();
     const elapsedMin = ((Date.now() - (d.lastTime || Date.now())) / 60000);
