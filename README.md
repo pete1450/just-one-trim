@@ -1,4 +1,5 @@
 # Just One Trim — a bonsai that grows while you're away
+<img height="700" alt="image" src="https://github.com/user-attachments/assets/5f8e5088-f9ba-44aa-95b9-fc8902fab3bf" />
 
 A relaxing procedural bonsai simulator in a **single HTML file** (`index.html`).
 Three.js r147 is inlined, so the game runs offline with no build step at
@@ -29,6 +30,10 @@ ever die, so prune boldly.
   to watch.
 - **Growth slider.** From a slow, patient tree (a new voxel every few
   minutes) to wild (a whole tree in minutes) for shaping and testing.
+
+   <img width="490" height="402" alt="image" src="https://github.com/user-attachments/assets/ddddead7-a4bc-4b86-ba2d-287d6ec7dbd6" /><img width="596" height="463" alt="image" src="https://github.com/user-attachments/assets/bb3daea2-a76e-4af7-b039-d2c72a2e65b5" />
+
+
 
 ## Controls
 
