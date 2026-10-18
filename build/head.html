@@ -26,6 +26,12 @@
   #menu .btns{justify-content:flex-start;}
   .btn{cursor:pointer;font-size:16px;padding:2px 6px;border-radius:8px;}
   .btn:hover{background:rgba(255,233,214,.15);}
+  .volWrap{position:relative;}
+  #vol{position:absolute;bottom:38px;left:50%;transform:translateX(-50%);
+    writing-mode:vertical-lr;direction:rtl;width:28px;height:112px;display:none;
+    accent-color:#ffd9a8;cursor:pointer;background:rgba(20,10,16,.72);
+    border:1px solid rgba(255,233,214,.25);border-radius:14px;padding:10px 0;z-index:5;}
+  #vol.open{display:block;}
   #help{display:none;border-top:1px solid rgba(255,233,214,.2);padding-top:8px;}
   #help b{display:block;margin-bottom:6px;font-size:14px;}
   #help p{margin:6px 0;}
@@ -51,7 +57,10 @@
   </div>
   <div class="mrow btns">
     <span class="btn" id="newTree" title="start over with a new seedling">&#x1F331;</span>
-    <span class="btn" id="snd" title="ambient sound">&#x1F507;</span>
+    <span class="btn volWrap" id="volWrap" title="volume">
+      <span id="snd">&#x1F507;</span>
+      <input type="range" id="vol" min="0" max="100" value="0" title="volume">
+    </span>
     <span class="btn" id="helpBtn" title="how to tend your tree">&#x2753;</span>
   </div>
   <div id="help"><b>Tending your bonsai</b>

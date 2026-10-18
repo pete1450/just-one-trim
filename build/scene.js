@@ -418,6 +418,7 @@ const menuEl = document.getElementById('menu');
 function closeMenu() {
   menuEl.classList.remove('open');
   helpEl.style.display = 'none';
+  volSlider.classList.remove('open');
 }
 menuBtn.addEventListener('click', function (e) {
   e.stopPropagation();
@@ -436,8 +437,21 @@ function updateStatus(force) {
 }
 
 /* ---------------- ambient audio: your music/ folder, else a generative hum ---------------- */
-let AC = null, master = null, soundOn = false, pluckTimer = null;
+let AC = null, master = null, pluckTimer = null;
+let volume = 0;
+try { volume = parseFloat(localStorage.getItem('bonsai.vol')) || 0; } catch (e) {}
+volume = Math.max(0, Math.min(1, volume));
 let musicAudio = null, musicOrder = [], musicIdx = 0, generativeOn = false;
+function applyVolume() {
+  const v = volume;
+  sndBtn.textContent = v === 0 ? '\u{1F507}' : v < 0.5 ? '\u{1F509}' : '\u{1F50A}';
+  if (AC) {
+    master.gain.cancelScheduledValues(AC.currentTime);
+    master.gain.setTargetAtTime(v * 0.16, AC.currentTime, 0.2);
+  }
+  if (musicAudio) musicAudio.volume = v;
+  try { localStorage.setItem('bonsai.vol', String(v)); } catch (e) {}
+}
 function initAudio() {
   if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
   try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
@@ -467,12 +481,13 @@ function startFileMusic(tracks) {
   musicOrder = shuffle(tracks.slice()); musicIdx = 0;
   musicAudio = new Audio();
   musicAudio.preload = 'auto';
+  musicAudio.volume = volume;
   musicAudio.addEventListener('ended', function () {
     musicIdx++;
     if (musicIdx >= musicOrder.length) { musicOrder = shuffle(tracks.slice()); musicIdx = 0; }
     playTrack();
   });
-  if (soundOn) playTrack();
+  if (volume > 0) playTrack();
 }
 function startGenerative() {
   if (generativeOn || musicAudio) return;
@@ -487,13 +502,13 @@ function startGenerative() {
   const lfo = AC.createOscillator(); lfo.frequency.value = 0.07;
   const lg = AC.createGain(); lg.gain.value = 0.15;
   lfo.connect(lg); lg.connect(g.gain); lfo.start();
-  if (soundOn) master.gain.linearRampToValueAtTime(0.16, AC.currentTime + 3);
+  applyVolume();
   schedulePluck();
 }
 function schedulePluck() {
   clearTimeout(pluckTimer);
   pluckTimer = setTimeout(function () {
-    if (AC && soundOn) {
+    if (AC && volume > 0) {
       const scale = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];
       const fr = scale[(Math.random() * scale.length) | 0];
       const o = AC.createOscillator(); o.type = 'triangle'; o.frequency.value = fr;
@@ -506,7 +521,7 @@ function schedulePluck() {
   }, 6000 + Math.random() * 9000);
 }
 function snip() {
-  if (!AC || !soundOn) return;
+  if (!AC || volume <= 0) return;
   try {
     const len = Math.floor(AC.sampleRate * 0.09);
     const buf = AC.createBuffer(1, len, AC.sampleRate);
@@ -520,26 +535,24 @@ function snip() {
   } catch (e) {}
 }
 const sndBtn = document.getElementById('snd');
+const volSlider = document.getElementById('vol');
+volSlider.value = String(Math.round(volume * 100));
+applyVolume(); // sets the icon from the persisted volume
 sndBtn.addEventListener('click', function (e) {
   e.stopPropagation();
-  soundOn = !soundOn;
-  sndBtn.textContent = soundOn ? '\u{1F50A}' : '\u{1F507}';
+  volSlider.classList.toggle('open'); // tap the speaker to reveal the volume slider
+});
+volSlider.addEventListener('click', function (e) { e.stopPropagation(); });
+volSlider.addEventListener('input', function () {
+  volume = parseInt(volSlider.value, 10) / 100;
   initAudio();
-  if (musicAudio) {
-    if (soundOn) {
-      if (!musicAudio.src) playTrack();
-      else { const p = musicAudio.play(); if (p && p.catch) p.catch(function () {}); }
-    } else musicAudio.pause();
-  }
-  if (AC) {
-    if (soundOn) {
-      AC.resume();
-      master.gain.cancelScheduledValues(AC.currentTime);
-      master.gain.linearRampToValueAtTime(0.16, AC.currentTime + 2);
-    } else {
-      master.gain.linearRampToValueAtTime(0, AC.currentTime + 0.5);
+  if (musicAudio && volume > 0) {
+    if (!musicAudio.src) playTrack();
+    else if (musicAudio.paused) {
+      const p = musicAudio.play(); if (p && p.catch) p.catch(function () {});
     }
   }
+  applyVolume();
 });
 
 /* ---------------- hold-to-trim: 1s press, charging dial, glow preview ---------------- */
@@ -755,7 +768,7 @@ window.__bonsai = {
   },
   audio: function () {
     return { generative: generativeOn, fileMusic: !!musicAudio,
-             tracks: musicOrder.length, soundOn: soundOn };
+             tracks: musicOrder.length, volume: volume };
   },
   step: function (n) { for (let i = 0; i < (n || 1); i++) sim.growOne(); revealCount = 1e15; treeDirty = true; },
   setRate: function (r) { sim.rate = r; updateRateWord(); },
