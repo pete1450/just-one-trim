@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Bonsai — a tree that grows while you're away</title>
+<style>
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#f2a988;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+  #c{position:fixed;inset:0;display:block;touch-action:none;}
+  .pill{position:fixed;background:rgba(30,16,24,.55);color:#ffe9d6;
+    border:1px solid rgba(255,233,214,.25);border-radius:999px;
+    padding:8px 14px;font-size:14px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    user-select:none;-webkit-user-select:none;z-index:10;}
+  #menuBtn{top:14px;left:14px;line-height:1.35;cursor:pointer;font-family:inherit;text-align:left;}
+  #menuBtn b{font-size:15px;letter-spacing:.5px;}
+  #menuBtn small{display:block;font-size:11.5px;opacity:.75;}
+  #menuBtn:hover{background:rgba(50,28,40,.65);}
+  #menu{top:74px;left:14px;border-radius:14px;display:none;flex-direction:column;
+    gap:10px;white-space:normal;min-width:230px;max-width:290px;line-height:1.5;font-size:13px;text-align:left;}
+  #menu.open{display:flex;}
+  #menu .mrow{display:flex;align-items:center;gap:10px;}
+  #menu .lbl{font-size:12px;opacity:.85;}
+  #menu input[type=range]{width:130px;accent-color:#ffd9a8;cursor:pointer;flex:1;}
+  #rateWord{font-size:12px;opacity:.85;min-width:44px;text-align:left;}
+  #menu .btns{justify-content:flex-start;}
+  .btn{cursor:pointer;font-size:16px;padding:2px 6px;border-radius:8px;}
+  .btn:hover{background:rgba(255,233,214,.15);}
+  #help{display:none;border-top:1px solid rgba(255,233,214,.2);padding-top:8px;}
+  #help b{display:block;margin-bottom:6px;font-size:14px;}
+  #help p{margin:6px 0;}
+  #catchup{top:14px;left:50%;transform:translateX(-50%);display:none;font-size:13px;}
+  #holdDial{position:fixed;width:76px;height:76px;margin:-38px 0 0 -38px;display:none;
+    pointer-events:none;z-index:20;}
+  #holdDial svg{width:100%;height:100%;}
+  @media (max-width:600px){
+    #menuBtn small{display:none;}
+    #menu input[type=range]{width:90px;}
+    #menu{max-width:230px;}
+  }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<button class="pill" id="menuBtn"><b>&#x1F333; Bonsai</b><small id="status">waking up&hellip;</small></button>
+<div class="pill" id="menu">
+  <div class="mrow">
+    <span class="lbl">growth</span>
+    <input type="range" id="rate" min="0" max="1000" value="338" title="growth speed">
+    <span id="rateWord">steady</span>
+  </div>
+  <div class="mrow btns">
+    <span class="btn" id="newTree" title="start over with a new seedling">&#x1F331;</span>
+    <span class="btn" id="snd" title="ambient sound">&#x1F507;</span>
+    <span class="btn" id="helpBtn" title="how to tend your tree">&#x2753;</span>
+  </div>
+  <div id="help"><b>Tending your bonsai</b>
+  <p>Press and hold a branch for a second to prune it there. A ring charges
+  while the piece glows white, so nothing gets snipped by accident. The cut
+  piece tumbles down and fades — the tree doesn't mind. It heals over and
+  pushes out fresh growth, sometimes in surprising directions. That's how
+  you shape it. A snipped leaf puff just grows a tiny twig nub or leafs
+  right back out.</p>
+  <p>Your tree keeps living while you're away. Open it in the morning and
+  watch it catch up on the night's growth.</p>
+  <p>The slider sets the pace of its life: slow for a patient tree, fast to
+  watch it change shape while you look.</p>
+  <p>Nothing here can die. Prune boldly.</p>
+  </div>
+</div>
+<div class="pill" id="catchup">while you were away&hellip; catching up</div>
+<div id="holdDial"><svg viewBox="0 0 64 64">
+  <circle cx="32" cy="32" r="26" fill="rgba(20,10,16,0.25)" stroke="rgba(255,255,255,0.35)" stroke-width="4"/>
+  <circle id="holdDialFg" cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.95)"
+    stroke-width="4" stroke-linecap="round" stroke-dasharray="163.4" stroke-dashoffset="163.4"
+    transform="rotate(-90 32 32)"/>
+</svg></div>
