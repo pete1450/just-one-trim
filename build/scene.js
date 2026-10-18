@@ -443,7 +443,8 @@ function initAudio() {
   try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
   master = AC.createGain(); master.gain.value = 0; master.connect(AC.destination);
   // Drop audio files in music/ and they play in random order instead of the hum.
-  fetch('music/playlist.json').then(function (r) { return r.ok ? r.json() : null; })
+  // no-store: never serve a stale cached playlist after new tracks are added.
+  fetch('music/playlist.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; })
     .then(function (pl) {
       if (pl && pl.tracks && pl.tracks.length) startFileMusic(pl.tracks);
       else startGenerative();
